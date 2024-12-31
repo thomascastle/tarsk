@@ -1,0 +1,153 @@
+package main
+
+import (
+	"errors"
+	"fmt"
+	"net/http"
+	"time"
+
+	"github.com/julienschmidt/httprouter"
+	"github.com/thomascastle/tarsk/internal/data"
+)
+
+func (app *application) listTasksHandler(w http.ResponseWriter, r *http.Request) {
+	tasks, e := app.models.Tasks.Select()
+	if e != nil {
+		app.serverErrorResponse(w, r, e)
+		return
+	}
+
+	e = app.writeJSON(w, http.StatusOK, envelope{"tasks": tasks}, nil)
+	if e != nil {
+		app.serverErrorResponse(w, r, e)
+	}
+}
+
+func (app *application) createTaskHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Description string    `json:"description"`
+		DueAt       time.Time `json:"due_at"`
+		Priority    string    `json:"priority"`
+		StartedAt   time.Time `json:"started_at"`
+	}
+
+	e := app.readJSON(w, r, &input)
+	if e != nil {
+		app.badRequestResponse(w, r, e)
+		return
+	}
+
+	task := &data.Task{
+		Description: input.Description,
+		DueAt:       input.DueAt,
+		Priority:    input.Priority,
+		StartedAt:   input.StartedAt,
+	}
+
+	e = app.models.Tasks.Insert(task)
+	if e != nil {
+		app.serverErrorResponse(w, r, e)
+		return
+	}
+
+	headers := make(http.Header)
+	headers.Set("Location", fmt.Sprintf("/v1/tasks/%s", task.ID))
+
+	e = app.writeJSON(w, http.StatusCreated, envelope{"task": task}, headers)
+	if e != nil {
+		app.serverErrorResponse(w, r, e)
+	}
+}
+
+func (app *application) showTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id := httprouter.ParamsFromContext(r.Context()).ByName("id")
+
+	task, e := app.models.Tasks.SelectOne(id)
+	if e != nil {
+		switch {
+		case errors.Is(e, data.ErrorRecordNotFound):
+			app.resourceNotFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, e)
+		}
+		return
+	}
+
+	e = app.writeJSON(w, http.StatusOK, envelope{"task": task}, nil)
+	if e != nil {
+		app.serverErrorResponse(w, r, e)
+	}
+}
+
+func (app *application) updateTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id := httprouter.ParamsFromContext(r.Context()).ByName("id")
+
+	task, e := app.models.Tasks.SelectOne(id)
+	if e != nil {
+		switch {
+		case errors.Is(e, data.ErrorRecordNotFound):
+			app.resourceNotFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, e)
+		}
+		return
+	}
+
+	var input struct {
+		Description *string `json:"description"`
+		Done        *bool   `json:"done"`
+		Priority    *string `json:"priority"`
+	}
+
+	e = app.readJSON(w, r, &input)
+	if e != nil {
+		app.badRequestResponse(w, r, e)
+		return
+	}
+
+	if input.Description != nil {
+		task.Description = *input.Description
+	}
+	if input.Done != nil {
+		task.Done = *input.Done
+	}
+	if input.Priority != nil {
+		task.Priority = *input.Priority
+	}
+
+	e = app.models.Tasks.Update(task)
+	if e != nil {
+		switch {
+		case errors.Is(e, data.ErrorEditConflict):
+			app.editConflictResponse(w, r, e)
+		default:
+			app.serverErrorResponse(w, r, e)
+		}
+		return
+	}
+
+	e = app.writeJSON(w, http.StatusOK, envelope{"task": task}, nil)
+	if e != nil {
+		app.serverErrorResponse(w, r, e)
+	}
+}
+
+func (app *application) deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id := httprouter.ParamsFromContext(r.Context()).ByName("id")
+
+	e := app.models.Tasks.Delete(id)
+	if e != nil {
+		switch {
+		case errors.Is(e, data.ErrorRecordNotFound):
+			app.resourceNotFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, e)
+		}
+		return
+	}
+
+	e = app.writeJSON(w, http.StatusOK, envelope{"message": "The task has been deleted successfully."}, nil)
+	if e != nil {
+		app.serverErrorResponse(w, r, e)
+	}
+}
