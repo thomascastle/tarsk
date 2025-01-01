@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/julienschmidt/httprouter"
 	"github.com/thomascastle/tarsk/internal/data"
 )
 
@@ -60,7 +59,7 @@ func (app *application) createTaskHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) showTaskHandler(w http.ResponseWriter, r *http.Request) {
-	id := httprouter.ParamsFromContext(r.Context()).ByName("id")
+	id := routeParam(r, "id")
 
 	task, e := app.models.Tasks.SelectOne(id)
 	if e != nil {
@@ -80,7 +79,7 @@ func (app *application) showTaskHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *application) updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	id := httprouter.ParamsFromContext(r.Context()).ByName("id")
+	id := routeParam(r, "id")
 
 	task, e := app.models.Tasks.SelectOne(id)
 	if e != nil {
@@ -94,9 +93,11 @@ func (app *application) updateTaskHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	var input struct {
-		Description *string `json:"description"`
-		Done        *bool   `json:"done"`
-		Priority    *string `json:"priority"`
+		Description *string   `json:"description"`
+		Done        *bool     `json:"done"`
+		DueAt       time.Time `json:"due_at"`
+		Priority    *string   `json:"priority"`
+		StartedAt   time.Time `json:"started_at"`
 	}
 
 	e = app.readJSON(w, r, &input)
@@ -111,8 +112,14 @@ func (app *application) updateTaskHandler(w http.ResponseWriter, r *http.Request
 	if input.Done != nil {
 		task.Done = *input.Done
 	}
+	if !input.DueAt.IsZero() {
+		task.DueAt = input.DueAt
+	}
 	if input.Priority != nil {
 		task.Priority = *input.Priority
+	}
+	if !input.StartedAt.IsZero() {
+		task.StartedAt = input.StartedAt
 	}
 
 	e = app.models.Tasks.Update(task)
@@ -133,7 +140,7 @@ func (app *application) updateTaskHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
-	id := httprouter.ParamsFromContext(r.Context()).ByName("id")
+	id := routeParam(r, "id")
 
 	e := app.models.Tasks.Delete(id)
 	if e != nil {

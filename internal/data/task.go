@@ -106,13 +106,15 @@ func (m TaskModel) SelectOne(id string) (*Task, error) {
 func (m TaskModel) Update(task *Task) error {
 	query := `
 		UPDATE tasks
-		SET description=$1, done=$2, priority=$3
-		WHERE id=$4`
+		SET description=$1, done=$2, due_at=$3, priority=$4, started_at=$5
+		WHERE id=$6`
 
 	args := []interface{}{
 		task.Description,
 		task.Done,
+		task.DueAt,
 		task.Priority,
+		task.StartedAt,
 		task.ID,
 	}
 
