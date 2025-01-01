@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"time"
+
+	"github.com/thomascastle/tarsk/internal/validator"
 )
 
 type Task struct {
@@ -157,4 +159,12 @@ func (m TaskModel) Delete(id string) error {
 	}
 
 	return nil
+}
+
+func ValidateTask(v *validator.Validator, task *Task) {
+	v.Check(task.Description != "", "description", "must be provided")
+	v.Check(len(task.Description) <= 512, "description", "must not be more than 512 bytes long")
+
+	supportedPriorities := []string{"none", "low", "medium", "high"}
+	v.Check(validator.In(task.Priority, supportedPriorities...), "priority", "invalid priority value")
 }

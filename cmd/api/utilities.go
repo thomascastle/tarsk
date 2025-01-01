@@ -76,6 +76,14 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data envelo
 	return nil
 }
 
+func prioritize(priority string) string {
+	if priority == "" {
+		return "none"
+	}
+
+	return priority
+}
+
 func routeParam(r *http.Request, name string) string {
 	return httprouter.ParamsFromContext(r.Context()).ByName(name)
 }

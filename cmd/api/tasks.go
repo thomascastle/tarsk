@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/thomascastle/tarsk/internal/data"
+	"github.com/thomascastle/tarsk/internal/validator"
 )
 
 func (app *application) listTasksHandler(w http.ResponseWriter, r *http.Request) {
@@ -39,8 +40,14 @@ func (app *application) createTaskHandler(w http.ResponseWriter, r *http.Request
 	task := &data.Task{
 		Description: input.Description,
 		DueAt:       input.DueAt,
-		Priority:    input.Priority,
+		Priority:    prioritize(input.Priority),
 		StartedAt:   input.StartedAt,
+	}
+
+	v := validator.New()
+	if data.ValidateTask(v, task); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
 	}
 
 	e = app.models.Tasks.Insert(task)
