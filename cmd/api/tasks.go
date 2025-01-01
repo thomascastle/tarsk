@@ -129,6 +129,12 @@ func (app *application) updateTaskHandler(w http.ResponseWriter, r *http.Request
 		task.StartedAt = input.StartedAt
 	}
 
+	v := validator.New()
+	if data.ValidateTask(v, task); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
 	e = app.models.Tasks.Update(task)
 	if e != nil {
 		switch {
