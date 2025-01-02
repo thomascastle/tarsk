@@ -10,12 +10,12 @@ var (
 	ErrorRecordNotFound = errors.New("record was not found")
 )
 
-type Models struct {
-	Tasks TaskModel
+type Repositories struct {
+	Tasks TaskRepository
 }
 
-func NewModels(db *sql.DB) Models {
-	return Models{
-		Tasks: TaskModel{DB: db},
+func NewRepositories(db *sql.DB) Repositories {
+	return Repositories{
+		Tasks: TaskRepository{DB: db},
 	}
 }

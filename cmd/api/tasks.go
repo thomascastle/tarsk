@@ -11,7 +11,7 @@ import (
 )
 
 func (app *application) listTasksHandler(w http.ResponseWriter, r *http.Request) {
-	tasks, e := app.models.Tasks.Select()
+	tasks, e := app.repositories.Tasks.Select()
 	if e != nil {
 		app.serverErrorResponse(w, r, e)
 		return
@@ -50,7 +50,7 @@ func (app *application) createTaskHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	e = app.models.Tasks.Insert(task)
+	e = app.repositories.Tasks.Insert(task)
 	if e != nil {
 		app.serverErrorResponse(w, r, e)
 		return
@@ -68,7 +68,7 @@ func (app *application) createTaskHandler(w http.ResponseWriter, r *http.Request
 func (app *application) showTaskHandler(w http.ResponseWriter, r *http.Request) {
 	id := routeParam(r, "id")
 
-	task, e := app.models.Tasks.SelectOne(id)
+	task, e := app.repositories.Tasks.SelectOne(id)
 	if e != nil {
 		switch {
 		case errors.Is(e, data.ErrorRecordNotFound):
@@ -88,7 +88,7 @@ func (app *application) showTaskHandler(w http.ResponseWriter, r *http.Request) 
 func (app *application) updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	id := routeParam(r, "id")
 
-	task, e := app.models.Tasks.SelectOne(id)
+	task, e := app.repositories.Tasks.SelectOne(id)
 	if e != nil {
 		switch {
 		case errors.Is(e, data.ErrorRecordNotFound):
@@ -135,7 +135,7 @@ func (app *application) updateTaskHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	e = app.models.Tasks.Update(task)
+	e = app.repositories.Tasks.Update(task)
 	if e != nil {
 		switch {
 		case errors.Is(e, data.ErrorEditConflict):
@@ -155,7 +155,7 @@ func (app *application) updateTaskHandler(w http.ResponseWriter, r *http.Request
 func (app *application) deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 	id := routeParam(r, "id")
 
-	e := app.models.Tasks.Delete(id)
+	e := app.repositories.Tasks.Delete(id)
 	if e != nil {
 		switch {
 		case errors.Is(e, data.ErrorRecordNotFound):

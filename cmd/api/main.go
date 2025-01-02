@@ -19,9 +19,9 @@ type configuration struct {
 }
 
 type application struct {
-	config configuration
-	logger *structuredlog.Logger
-	models data.Models
+	config       configuration
+	logger       *structuredlog.Logger
+	repositories data.Repositories
 }
 
 func main() {
@@ -46,9 +46,9 @@ func main() {
 	logger.Info("database connection pool established", nil)
 
 	app := &application{
-		config: config,
-		logger: logger,
-		models: data.NewModels(db),
+		config:       config,
+		logger:       logger,
+		repositories: data.NewRepositories(db),
 	}
 
 	e = app.serve()

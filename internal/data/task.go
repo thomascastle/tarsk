@@ -18,11 +18,11 @@ type Task struct {
 	StartedAt   time.Time `json:"started_at"`
 }
 
-type TaskModel struct {
+type TaskRepository struct {
 	DB *sql.DB
 }
 
-func (m TaskModel) Insert(task *Task) error {
+func (r TaskRepository) Insert(task *Task) error {
 	query := `
 		INSERT INTO tasks (description, due_at, priority, started_at)
 		VALUES ($1, $2, $3, $4)
@@ -33,10 +33,10 @@ func (m TaskModel) Insert(task *Task) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	return m.DB.QueryRowContext(ctx, query, args...).Scan(&task.ID)
+	return r.DB.QueryRowContext(ctx, query, args...).Scan(&task.ID)
 }
 
-func (m TaskModel) Select() ([]*Task, error) {
+func (r TaskRepository) Select() ([]*Task, error) {
 	query := `
 		SELECT description, done, due_at, id, priority, started_at
 		FROM tasks`
@@ -44,7 +44,7 @@ func (m TaskModel) Select() ([]*Task, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, e := m.DB.QueryContext(ctx, query)
+	rows, e := r.DB.QueryContext(ctx, query)
 	if e != nil {
 		return nil, e
 	}
@@ -75,7 +75,7 @@ func (m TaskModel) Select() ([]*Task, error) {
 	return tasks, nil
 }
 
-func (m TaskModel) SelectOne(id string) (*Task, error) {
+func (r TaskRepository) SelectOne(id string) (*Task, error) {
 	query := `
 		SELECT description, done, due_at, id, priority, started_at
 		FROM tasks
@@ -85,7 +85,7 @@ func (m TaskModel) SelectOne(id string) (*Task, error) {
 	defer cancel()
 
 	var task Task
-	e := m.DB.QueryRowContext(ctx, query, id).Scan(
+	e := r.DB.QueryRowContext(ctx, query, id).Scan(
 		&task.Description,
 		&task.Done,
 		&task.DueAt,
@@ -105,7 +105,7 @@ func (m TaskModel) SelectOne(id string) (*Task, error) {
 	return &task, nil
 }
 
-func (m TaskModel) Update(task *Task) error {
+func (r TaskRepository) Update(task *Task) error {
 	query := `
 		UPDATE tasks
 		SET description=$1, done=$2, due_at=$3, priority=$4, started_at=$5
@@ -123,7 +123,7 @@ func (m TaskModel) Update(task *Task) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, e := m.DB.ExecContext(ctx, query, args...)
+	_, e := r.DB.ExecContext(ctx, query, args...)
 	if e != nil {
 		switch {
 		case errors.Is(e, sql.ErrNoRows):
@@ -136,7 +136,7 @@ func (m TaskModel) Update(task *Task) error {
 	return nil
 }
 
-func (m TaskModel) Delete(id string) error {
+func (r TaskRepository) Delete(id string) error {
 	query := `
 		DELETE FROM tasks
 		WHERE id=$1`
@@ -144,7 +144,7 @@ func (m TaskModel) Delete(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	result, e := m.DB.ExecContext(ctx, query, id)
+	result, e := r.DB.ExecContext(ctx, query, id)
 	if e != nil {
 		return e
 	}
