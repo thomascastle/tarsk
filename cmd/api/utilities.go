@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/thomascastle/tarsk/internal/data"
 )
 
 func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst interface{}) error {
@@ -76,9 +77,9 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data envelo
 	return nil
 }
 
-func prioritize(priority string) string {
+func prioritize(priority data.Priority) data.Priority {
 	if priority == "" {
-		return "none"
+		return data.PriorityNone
 	}
 
 	return priority

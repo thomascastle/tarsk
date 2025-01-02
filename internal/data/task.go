@@ -14,7 +14,7 @@ type Task struct {
 	Done        bool      `json:"done"`
 	DueAt       time.Time `json:"due_at"`
 	ID          string    `json:"id"`
-	Priority    string    `json:"priority"`
+	Priority    Priority  `json:"priority"`
 	StartedAt   time.Time `json:"started_at"`
 }
 
@@ -167,8 +167,7 @@ func ValidateTask(v *validator.Validator, task *Task) {
 
 	v.Check(!task.DueAt.IsZero(), "due_at", "is required")
 
-	supportedPriorities := []string{"none", "low", "medium", "high"}
-	v.Check(validator.In(task.Priority, supportedPriorities...), "priority", "invalid priority value")
+	v.Check(task.Priority.IsValid(), "priority", "invalid priority value")
 
 	v.Check(!task.StartedAt.IsZero(), "started_at", "is required")
 	v.Check(!task.StartedAt.After(task.DueAt), "started_at", "date started must not be after due date")

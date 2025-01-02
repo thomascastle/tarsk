@@ -25,10 +25,10 @@ func (app *application) listTasksHandler(w http.ResponseWriter, r *http.Request)
 
 func (app *application) createTaskHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Description string    `json:"description"`
-		DueAt       time.Time `json:"due_at"`
-		Priority    string    `json:"priority"`
-		StartedAt   time.Time `json:"started_at"`
+		Description string        `json:"description"`
+		DueAt       time.Time     `json:"due_at"`
+		Priority    data.Priority `json:"priority"`
+		StartedAt   time.Time     `json:"started_at"`
 	}
 
 	e := app.readJSON(w, r, &input)
@@ -100,11 +100,11 @@ func (app *application) updateTaskHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	var input struct {
-		Description *string   `json:"description"`
-		Done        *bool     `json:"done"`
-		DueAt       time.Time `json:"due_at"`
-		Priority    *string   `json:"priority"`
-		StartedAt   time.Time `json:"started_at"`
+		Description *string        `json:"description"`
+		Done        *bool          `json:"done"`
+		DueAt       time.Time      `json:"due_at"`
+		Priority    *data.Priority `json:"priority"`
+		StartedAt   time.Time      `json:"started_at"`
 	}
 
 	e = app.readJSON(w, r, &input)
