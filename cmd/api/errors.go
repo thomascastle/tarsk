@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 )
 
@@ -36,7 +35,7 @@ func (app *application) resourceNotFoundResponse(w http.ResponseWriter, r *http.
 }
 
 func (app *application) logError(r *http.Request, e error) {
-	log.Fatal(e, r.Method)
+	app.logger.Error(e, map[string]string{"request_method": r.Method, "request_url": r.URL.String()})
 }
 
 func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, e error) {

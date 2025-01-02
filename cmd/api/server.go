@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -28,7 +27,7 @@ func (app *application) serve() error {
 		signal.Notify(signalQuitting, syscall.SIGINT, syscall.SIGTERM)
 		s := <-signalQuitting // blocks until a signal is received
 
-		log.Println("The server is gracefully shutting down...", s.String())
+		app.logger.Info("server gracefully shutting down...", map[string]string{"signal": s.String()})
 
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -41,7 +40,7 @@ func (app *application) serve() error {
 		errorShuttingDown <- nil
 	}()
 
-	log.Printf("The server started at :%d", app.config.port)
+	app.logger.Info("server started", map[string]string{"addr": server.Addr, "env": app.config.env})
 
 	e := server.ListenAndServe()
 	if !errors.Is(e, http.ErrServerClosed) {
@@ -53,7 +52,7 @@ func (app *application) serve() error {
 		return e
 	}
 
-	log.Println("The server stopped")
+	app.logger.Info("server stopped", map[string]string{"addr": server.Addr})
 
 	return nil
 }
