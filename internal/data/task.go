@@ -162,9 +162,14 @@ func (m TaskModel) Delete(id string) error {
 }
 
 func ValidateTask(v *validator.Validator, task *Task) {
-	v.Check(task.Description != "", "description", "must be provided")
+	v.Check(task.Description != "", "description", "is required")
 	v.Check(len(task.Description) <= 512, "description", "must not be more than 512 bytes long")
+
+	v.Check(!task.DueAt.IsZero(), "due_at", "is required")
 
 	supportedPriorities := []string{"none", "low", "medium", "high"}
 	v.Check(validator.In(task.Priority, supportedPriorities...), "priority", "invalid priority value")
+
+	v.Check(!task.StartedAt.IsZero(), "started_at", "is required")
+	v.Check(!task.StartedAt.After(task.DueAt), "started_at", "date started must not be after due date")
 }
