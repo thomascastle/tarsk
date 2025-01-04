@@ -8,6 +8,8 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/thomascastle/tarsk/internal/data"
 	"github.com/thomascastle/tarsk/internal/structuredlog"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 type configuration struct {
@@ -19,9 +21,10 @@ type configuration struct {
 }
 
 type application struct {
-	config       configuration
-	logger       *structuredlog.Logger
-	repositories data.Repositories
+	config              configuration
+	logger              *structuredlog.Logger
+	repositories        data.Repositories
+	taskIndexRepository data.TaskIndexRepository
 }
 
 func main() {
@@ -45,10 +48,16 @@ func main() {
 
 	logger.Info("database connection pool established", nil)
 
+	db_GORM, e := openDB_GORM()
+	if e != nil {
+		logger.Fatal(e, nil)
+	}
+
 	app := &application{
-		config:       config,
-		logger:       logger,
-		repositories: data.NewRepositories(db),
+		config:              config,
+		logger:              logger,
+		repositories:        data.NewRepositories(db),
+		taskIndexRepository: data.NewTaskIndexRepository(db_GORM),
 	}
 
 	e = app.serve()
@@ -64,6 +73,16 @@ func openDB(config configuration) (*sql.DB, error) {
 	}
 
 	e = db.Ping()
+	if e != nil {
+		return nil, e
+	}
+
+	return db, nil
+}
+
+func openDB_GORM() (*gorm.DB, error) {
+	dsn := "postgres://thomas:securesecret@localhost/tarsk?sslmode=disable"
+	db, e := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if e != nil {
 		return nil, e
 	}

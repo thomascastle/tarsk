@@ -167,7 +167,7 @@ func ValidateTask(v *validator.Validator, task *Task) {
 
 	v.Check(!task.DueAt.IsZero(), "due_at", "is required")
 
-	v.Check(task.Priority.IsValid(), "priority", "invalid priority value")
+	v.Check(task.Priority.Valid(), "priority", "invalid value")
 
 	v.Check(!task.StartedAt.IsZero(), "started_at", "is required")
 	v.Check(!task.StartedAt.After(task.DueAt), "started_at", "date started must not be after due date")

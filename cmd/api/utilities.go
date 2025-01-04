@@ -6,11 +6,29 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/thomascastle/tarsk/internal/data"
 )
+
+func (app *application) readBool(values url.Values, key string) *bool {
+	value := values.Get(key)
+
+	if value == "" {
+		return nil
+	}
+
+	t, e := strconv.ParseBool(value)
+	if e != nil {
+		// TODO Handle error properly
+		return nil
+	}
+
+	return &t
+}
 
 func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst interface{}) error {
 	maxBytes := 1_048_576
@@ -54,6 +72,16 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 	}
 
 	return nil
+}
+
+func (app *application) readString(values url.Values, key string, defaultValue string) string {
+	value := values.Get(key)
+
+	if value == "" {
+		return defaultValue
+	}
+
+	return value
 }
 
 type envelope map[string]interface{}

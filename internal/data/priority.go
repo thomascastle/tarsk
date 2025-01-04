@@ -9,7 +9,7 @@ const (
 	PriorityHigh   Priority = "high"
 )
 
-func (p Priority) IsValid() bool {
+func (p Priority) Valid() bool {
 	switch p {
 	case PriorityNone, PriorityLow, PriorityMedium, PriorityHigh:
 		return true

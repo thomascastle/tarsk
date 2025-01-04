@@ -11,7 +11,16 @@ import (
 )
 
 func (app *application) listTasksHandler(w http.ResponseWriter, r *http.Request) {
-	tasks, e := app.repositories.Tasks.Select()
+	values := r.URL.Query()
+	filters := data.ParseFilters(values)
+
+	v := validator.New()
+	if filters.Validate(v); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	tasks, e := app.taskIndexRepository.Select(&filters)
 	if e != nil {
 		app.serverErrorResponse(w, r, e)
 		return
