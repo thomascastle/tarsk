@@ -7,11 +7,27 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/thomascastle/tarsk/internal/data"
 )
+
+func (app *application) readInt(values url.Values, key string, defaultValue int) (int, error) {
+	value := values.Get(key)
+
+	if value == "" {
+		return defaultValue, nil
+	}
+
+	i, e := strconv.Atoi(value)
+	if e != nil {
+		return defaultValue, e
+	}
+
+	return i, nil
+}
 
 func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst interface{}) error {
 	maxBytes := 1_048_576

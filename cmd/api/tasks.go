@@ -12,22 +12,48 @@ import (
 
 func (app *application) listTasksHandler(w http.ResponseWriter, r *http.Request) {
 	values := r.URL.Query()
-	filters := data.ParseFilters(values)
 	search := app.readString(values, "description", "")
 
+	filters := data.ParseFilters(values)
 	v := validator.New()
 	if filters.Validate(v); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
-	tasks, e := app.taskIndexRepository.Select(&filters, search)
+	sort := data.Sort{}
+	sort.Sort = app.readString(values, "sort", "due_at")
+	sort.SortSafelist = []string{"due_at", "priority", "-due_at", "-priority"}
+	if sort.Validate(v); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	paginator := data.Paginator{}
+	value, e := app.readInt(values, "page", 1)
+	if e != nil {
+		app.failedValidationResponse(w, r, map[string]string{"page": "must be an integer value"})
+		return
+	}
+	paginator.Page = value
+	value, e = app.readInt(values, "limit", 20)
+	if e != nil {
+		app.failedValidationResponse(w, r, map[string]string{"limit": "must be an integer value"})
+		return
+	}
+	paginator.Limit = value
+	if paginator.Validate(v); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	tasks, pagination, e := app.taskIndexRepository.Select(search, &filters, sort, paginator)
 	if e != nil {
 		app.serverErrorResponse(w, r, e)
 		return
 	}
 
-	e = app.writeJSON(w, http.StatusOK, envelope{"tasks": tasks}, nil)
+	e = app.writeJSON(w, http.StatusOK, envelope{"tasks": tasks, "pagination": pagination}, nil)
 	if e != nil {
 		app.serverErrorResponse(w, r, e)
 	}
