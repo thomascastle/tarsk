@@ -14,11 +14,15 @@ func NewTaskIndexRepository(db *gorm.DB) TaskIndexRepository {
 	}
 }
 
-func (r TaskIndexRepository) Select(filters *Filters) ([]*Task, error) {
+func (r TaskIndexRepository) Select(filters *Filters, search string) ([]*Task, error) {
 	var tasks []*Task
 
-	r.db.Where(map[string]interface{}(*filters)).
+	r.db.
 		Select([]string{"description", "done", "due_at", "id", "priority", "started_at"}).
+		Where(
+			r.db.Where("to_tsvector('simple', description) @@ plainto_tsquery('simple', ?)", search).Or("?=''", search),
+		).
+		Where(map[string]interface{}(*filters)).
 		Find(&tasks)
 
 	return tasks, nil

@@ -13,6 +13,7 @@ import (
 func (app *application) listTasksHandler(w http.ResponseWriter, r *http.Request) {
 	values := r.URL.Query()
 	filters := data.ParseFilters(values)
+	search := app.readString(values, "description", "")
 
 	v := validator.New()
 	if filters.Validate(v); !v.Valid() {
@@ -20,7 +21,7 @@ func (app *application) listTasksHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	tasks, e := app.taskIndexRepository.Select(&filters)
+	tasks, e := app.taskIndexRepository.Select(&filters, search)
 	if e != nil {
 		app.serverErrorResponse(w, r, e)
 		return

@@ -7,28 +7,11 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/thomascastle/tarsk/internal/data"
 )
-
-func (app *application) readBool(values url.Values, key string) *bool {
-	value := values.Get(key)
-
-	if value == "" {
-		return nil
-	}
-
-	t, e := strconv.ParseBool(value)
-	if e != nil {
-		// TODO Handle error properly
-		return nil
-	}
-
-	return &t
-}
 
 func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst interface{}) error {
 	maxBytes := 1_048_576
