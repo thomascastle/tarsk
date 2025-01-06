@@ -48,7 +48,7 @@ func main() {
 
 	logger.Info("database connection pool established", nil)
 
-	db_GORM, e := openDB_GORM()
+	db_GORM, e := openDB_GORM(config)
 	if e != nil {
 		logger.Fatal(e, nil)
 	}
@@ -80,8 +80,8 @@ func openDB(config configuration) (*sql.DB, error) {
 	return db, nil
 }
 
-func openDB_GORM() (*gorm.DB, error) {
-	dsn := "postgres://thomas:securesecret@localhost/tarsk?sslmode=disable"
+func openDB_GORM(config configuration) (*gorm.DB, error) {
+	dsn := config.db.dsn
 	db, e := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if e != nil {
 		return nil, e
