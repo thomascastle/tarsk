@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -90,6 +91,11 @@ func (app *application) createTaskHandler(w http.ResponseWriter, r *http.Request
 	if e != nil {
 		app.serverErrorResponse(w, r, e)
 		return
+	}
+
+	e = app.messageBrokerage.Created(context.Background(), task)
+	if e != nil {
+		app.logger.Error(e, nil)
 	}
 
 	headers := make(http.Header)
@@ -182,6 +188,11 @@ func (app *application) updateTaskHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	e = app.messageBrokerage.Updated(context.Background(), task)
+	if e != nil {
+		app.logger.Error(e, nil)
+	}
+
 	e = app.writeJSON(w, http.StatusOK, envelope{"task": task}, nil)
 	if e != nil {
 		app.serverErrorResponse(w, r, e)
@@ -200,6 +211,11 @@ func (app *application) deleteTaskHandler(w http.ResponseWriter, r *http.Request
 			app.serverErrorResponse(w, r, e)
 		}
 		return
+	}
+
+	e = app.messageBrokerage.Deleted(context.Background(), id)
+	if e != nil {
+		app.logger.Error(e, nil)
 	}
 
 	e = app.writeJSON(w, http.StatusOK, envelope{"message": "The task has been deleted successfully."}, nil)

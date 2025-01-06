@@ -7,6 +7,7 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/thomascastle/tarsk/internal/data"
+	"github.com/thomascastle/tarsk/internal/messaging"
 	"github.com/thomascastle/tarsk/internal/structuredlog"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -28,6 +29,7 @@ type configuration struct {
 type application struct {
 	config              configuration
 	logger              *structuredlog.Logger
+	messageBrokerage    *messaging.TaskMessageBrokerage
 	repositories        data.Repositories
 	taskIndexRepository data.TaskIndexRepository
 }
@@ -49,6 +51,13 @@ func main() {
 
 	logger := structuredlog.New(os.Stdout, structuredlog.LevelInfo)
 
+	r_client, e := messaging.NewClient()
+	if e != nil {
+		logger.Fatal(e, nil)
+	}
+
+	logger.Info("messaging client created", nil)
+
 	db, e := openDB(config)
 	if e != nil {
 		logger.Fatal(e, nil)
@@ -65,6 +74,7 @@ func main() {
 	app := &application{
 		config:              config,
 		logger:              logger,
+		messageBrokerage:    messaging.NewTaskMessageBrokerage(r_client),
 		repositories:        data.NewRepositories(db),
 		taskIndexRepository: data.NewTaskIndexRepository(db_GORM),
 	}
