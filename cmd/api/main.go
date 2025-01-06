@@ -16,7 +16,12 @@ type configuration struct {
 	db struct {
 		dsn string
 	}
-	env  string
+	env     string
+	limiter struct {
+		burst   int
+		enabled bool
+		rps     float64
+	}
 	port int
 }
 
@@ -33,6 +38,10 @@ func main() {
 	flag.StringVar(&config.db.dsn, "db-dsn", "", "Data Source Name")
 
 	flag.StringVar(&config.env, "env", "development", "Environment (development|staging|production)")
+
+	flag.IntVar(&config.limiter.burst, "limiter-burst", 4, "Maximum burst")
+	flag.BoolVar(&config.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
+	flag.Float64Var(&config.limiter.rps, "limiter-rps", 2, "Maximum requests per second")
 
 	flag.IntVar(&config.port, "port", 4000, "Port number the server is listening on")
 

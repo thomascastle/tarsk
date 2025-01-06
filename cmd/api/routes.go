@@ -15,5 +15,5 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPatch, "/v1/tasks/:id", app.updateTaskHandler)
 	router.HandlerFunc(http.MethodDelete, "/v1/tasks/:id", app.deleteTaskHandler)
 
-	return router
+	return app.rate(router)
 }
