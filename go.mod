@@ -5,6 +5,7 @@ go 1.22.2
 require github.com/lib/pq v1.10.2
 
 require (
+	github.com/elastic/go-elasticsearch/v7 v7.17.10
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/tomasen/realip v0.0.0-20180522021738-f0c99a92ddce
