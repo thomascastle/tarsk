@@ -8,6 +8,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/thomascastle/tarsk/internal/data"
 	"github.com/thomascastle/tarsk/internal/messaging"
+	"github.com/thomascastle/tarsk/internal/search"
 	"github.com/thomascastle/tarsk/internal/structuredlog"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -31,6 +32,7 @@ type application struct {
 	logger              *structuredlog.Logger
 	messageBrokerage    *messaging.TaskMessageBrokerage
 	repositories        data.Repositories
+	search              data.Search
 	taskIndexRepository data.TaskIndexRepository
 }
 
@@ -66,6 +68,13 @@ func main() {
 
 	logger.Info("database connection pool established", nil)
 
+	s_client, e := search.NewClient()
+	if e != nil {
+		logger.Fatal(e, nil)
+	}
+
+	logger.Info("search client created", nil)
+
 	db_GORM, e := openDB_GORM(config)
 	if e != nil {
 		logger.Fatal(e, nil)
@@ -76,6 +85,7 @@ func main() {
 		logger:              logger,
 		messageBrokerage:    messaging.NewTaskMessageBrokerage(r_client),
 		repositories:        data.NewRepositories(db),
+		search:              *data.NewSearch(s_client),
 		taskIndexRepository: data.NewTaskIndexRepository(db_GORM),
 	}
 

@@ -9,6 +9,7 @@ import (
 func (app *application) routes() http.Handler {
 	router := httprouter.New()
 
+	router.HandlerFunc(http.MethodPost, "/v1/search", app.searchHandler)
 	router.HandlerFunc(http.MethodGet, "/v1/tasks", app.listTasksHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/tasks", app.createTaskHandler)
 	router.HandlerFunc(http.MethodGet, "/v1/tasks/:id", app.showTaskHandler)
